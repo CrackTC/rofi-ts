@@ -174,7 +174,7 @@ static char *ts_get_brief_message ( const char *translation ) {
     char **lines = g_strsplit ( translation, "\n", -1 );
     unsigned int num_lines = g_strv_length ( lines );
 
-    char *last_line = g_strdup ( lines[num_lines - 1] );
+    char *last_line = g_strdup ( num_lines > 1 ? lines[num_lines - 2] : "" );
     g_strfreev ( lines );
 
     return ts_escape2pango ( last_line );
