@@ -371,8 +371,8 @@ static void get_translation_callback ( GObject *source_object, GAsyncResult *res
 
     const unsigned int stdout_bufsize = 4096;
     const unsigned int stderr_bufsize = 4096;
-    char *stdout_buf = g_malloc ( stdout_bufsize );
-    char *stderr_buf = g_malloc ( stderr_bufsize );
+    char *stdout_buf = g_malloc0 ( stdout_bufsize );
+    char *stderr_buf = g_malloc0 ( stderr_bufsize );
 
     g_input_stream_read_all ( stdout_stream, stdout_buf, stdout_bufsize, NULL, NULL, &error );
     if ( error != NULL ) {
