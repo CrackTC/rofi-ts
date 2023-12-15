@@ -305,7 +305,6 @@ static void ts_mode_destroy ( Mode *sw )
 {
     TSModePrivateData *pd = (TSModePrivateData *) mode_get_private_data ( sw );
     if ( pd != NULL ) {
-        g_free ( pd->cmd );
         g_free ( pd->prev_input );
         g_free ( pd->translation );
         g_ptr_array_free ( pd->history, TRUE );
