@@ -163,7 +163,9 @@ static char *ts_escape2pango ( const char *input )
                 g_error ( "Unknown escape sequence: %c", *c );
             }
         } else {
-            g_string_append ( str, g_markup_escape_text ( c, 1 ) );
+            char *escaped_text = g_markup_escape_text ( c, 1 );
+            g_string_append ( str, escaped_text );
+            g_free ( escaped_text );
         }
     }
 
@@ -400,6 +402,10 @@ static void get_translation_callback ( GObject *source_object, GAsyncResult *res
         g_free ( *translation );
     }
     *translation = g_strconcat ( stderr_buf, "\n", stdout_buf, NULL );
+
+    g_debug ( "Stdout: %s", stdout_buf );
+    g_debug ( "Stderr: %s", stderr_buf );
+    g_debug ( "Translation: %s", *translation );
 
     g_free ( stdout_buf );
     g_free ( stderr_buf );
