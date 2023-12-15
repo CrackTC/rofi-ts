@@ -1,32 +1,23 @@
-# Rofi plugin template
+# rofi-ts
 
-Template for creating rofi plugins.
+Yet another translate-shell plugin for rofi. Borrowed quite a bit of code from [rofi-calc](https://github.com/svenstaro/rofi-calc)
 
-To run this you need an up to date checkout of rofi git installed.
+![demo](img/demo.gif)
 
-Run rofi like:
 
-```bash
-    rofi -show myplugin -modi myplugin 
-```
-
-## Compilation
-
-### Dependencies
-
-| Dependency | Version         |
-|------------|-----------------|
-| rofi 	     | 1.4 (or git)	   |
-
-### Installation
-
-**Rofi-plugin-template** uses autotools as build system. If installing from git, the following steps should install it:
+## Usage
 
 ```bash
-$ autoreconf -i
-$ mkdir build
-$ cd build/
-$ ../configure
-$ make
-$ make install
+rofi -show ts -modi ts
 ```
+
+## Advanced Usage
+
+```bash
+rofi -show ts -modi ts -ts-command "notify-send 'rofi-ts' '{data}'"
+```
+
+This will show a notification with the translation result.
+
+![demo-notify](img/demo-notify.png)
+
