@@ -21,7 +21,6 @@
           ];
 
           shellHook = ''
-            export NIX_CFLAGS_COMPILE="-isystem ${pkgs.lib.getDev pkgs.cairo}/include/cairo"
             exec fish
           '';
         };
