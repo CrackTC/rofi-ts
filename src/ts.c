@@ -373,12 +373,11 @@ static void get_translation_callback ( GObject *source_object, GAsyncResult *res
         g_error_free ( error );
     }
 
-    const unsigned int stdout_bufsize = 4096;
-    const unsigned int stderr_bufsize = 4096;
-    char *stdout_buf = g_malloc0 ( stdout_bufsize );
-    char *stderr_buf = g_malloc0 ( stderr_bufsize );
+    const unsigned int bufsize = 4096;
+    char *stdout_buf = g_malloc0 ( bufsize );
+    char *stderr_buf = g_malloc0 ( bufsize );
 
-    g_input_stream_read_all ( stdout_stream, stdout_buf, stdout_bufsize, NULL, NULL, &error );
+    g_input_stream_read_all ( stdout_stream, stdout_buf, bufsize - 1, NULL, NULL, &error );
     if ( error != NULL ) {
         g_error ( "Reading stdout failed: %s", error->message );
         g_error_free ( error );
@@ -390,7 +389,7 @@ static void get_translation_callback ( GObject *source_object, GAsyncResult *res
         g_error_free ( error );
     }
 
-    g_input_stream_read_all ( stderr_stream, stderr_buf, stderr_bufsize, NULL, NULL, &error );
+    g_input_stream_read_all ( stderr_stream, stderr_buf, bufsize - 1, NULL, NULL, &error );
     if ( error != NULL ) {
         g_error ( "Reading stderr failed: %s", error->message );
         g_error_free ( error );
