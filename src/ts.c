@@ -45,6 +45,7 @@ G_MODULE_EXPORT Mode mode;
 typedef struct
 {
     char *cmd;
+    unsigned int timeout_ms;
     char *prev_input;
     char *translation;
     GPtrArray *history;
@@ -59,6 +60,7 @@ typedef struct
 #define MAX_HISTORY 1000
 
 #define TS_COMMAND_OPTION "-ts-command"
+#define TS_TIMEOUT_OPTION "-ts-timeout"
 
 #define RESULT_PLACEHOLDER "{result}"
 
@@ -79,6 +81,9 @@ static void get_ts ( Mode *sw )
 
     pd->cmd = NULL;
     find_arg_str ( TS_COMMAND_OPTION, &pd->cmd );
+
+    pd->timeout_ms = 500;
+    find_arg_uint ( TS_TIMEOUT_OPTION, &pd->timeout_ms );
 
     pd->prev_input = g_strdup ( "" );
     pd->translation = g_strdup ( "type to trans" );
@@ -437,6 +442,16 @@ static void get_translation ( const char *input, char **translation )
     g_subprocess_wait_check_async ( process, NULL, get_translation_callback, translation );
 }
 
+static int timeout_count = 0;
+
+static gboolean timeout_callback ( gpointer data ) {
+    if ( g_atomic_int_dec_and_test(&timeout_count) ) {
+        TSModePrivateData *pd = (TSModePrivateData *) data;
+        get_translation ( pd->prev_input, &pd->translation );
+    }
+    return G_SOURCE_REMOVE;
+}
+
 static char *ts_preprocess_input ( Mode *sw, const char *input )
 {
     TSModePrivateData *pd = (TSModePrivateData *) mode_get_private_data ( sw );
@@ -446,7 +461,8 @@ static char *ts_preprocess_input ( Mode *sw, const char *input )
         pd->prev_input = g_strdup ( input );
         pd->detailed = FALSE;
 
-        get_translation ( input, &pd->translation );
+        g_atomic_int_inc(&timeout_count);
+        g_timeout_add ( pd->timeout_ms, timeout_callback, pd );
     }
 
     return g_strdup ( input );
