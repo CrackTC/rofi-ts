@@ -180,6 +180,7 @@ static char *ts_get_brief_message ( const char *translation ) {
 
     char *last_line = g_strdup ( num_lines > 1 ? lines[num_lines - 2] : translation );
     g_strfreev ( lines );
+    g_strstrip ( last_line );
 
     return ts_escape2pango ( last_line );
 }
