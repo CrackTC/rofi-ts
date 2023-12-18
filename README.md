@@ -14,7 +14,7 @@ rofi -show ts -modi ts
 ## Advanced Usage
 
 ```bash
-rofi -show ts -modi ts -ts-command "notify-send 'rofi-ts' '{data}'"
+rofi -show ts -modi ts -ts-command "notify-send 'rofi-ts' '{result}'"
 ```
 
 This will show a notification with the translation result.

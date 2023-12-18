@@ -60,6 +60,8 @@ typedef struct
 
 #define TS_COMMAND_OPTION "-ts-command"
 
+#define RESULT_PLACEHOLDER "{result}"
+
 static char *get_history_path ( void )
 {
     const char *dir = g_get_user_data_dir ();
@@ -251,7 +253,7 @@ static void run_command ( const char *cmd, const char *data ) {
         return;
     }
 
-    char *user_cmd = helper_string_replace_if_exists ( (char*) cmd, "{data}", data, NULL );
+    char *user_cmd = helper_string_replace_if_exists ( (char*) cmd, RESULT_PLACEHOLDER, data, NULL );
     char *escaped_cmd = g_shell_quote ( user_cmd );
     g_free ( user_cmd );
 
