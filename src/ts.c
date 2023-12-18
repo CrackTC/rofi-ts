@@ -283,9 +283,6 @@ static ModeMode ts_mode_result ( Mode *sw, int mretv, char **input, unsigned int
     } else if ( ( mretv & MENU_OK ) ) {
         if ( selected_line == 0 ) {
             pd->detailed = !pd->detailed;
-            if ( pd->detailed ) {
-                append_history ( *input, pd );
-            }
             retv = RELOAD_DIALOG;
         } else if ( selected_line == 1 ) {
             char *brief = ts_get_brief_message ( pd->translation );
@@ -448,6 +445,7 @@ static gboolean timeout_callback ( gpointer data ) {
     if ( g_atomic_int_dec_and_test(&timeout_count) ) {
         TSModePrivateData *pd = (TSModePrivateData *) data;
         get_translation ( pd->prev_input, &pd->translation );
+        append_history ( pd->prev_input, pd );
     }
     return G_SOURCE_REMOVE;
 }
