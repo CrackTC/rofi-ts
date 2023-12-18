@@ -40,7 +40,7 @@
 G_MODULE_EXPORT Mode mode;
 
 /**
- * The internal data structure holding the private data of the TEST Mode.
+ * The internal data structure holding the private data of the TS Mode.
  */
 typedef struct
 {
@@ -68,7 +68,7 @@ static char *get_history_path ( void )
     return g_build_filename ( dir, "rofi", "rofi_ts_history", NULL );
 }
 
-static void get_ts (  Mode *sw )
+static void get_ts ( Mode *sw )
 {
     /** 
      * Get the entries to display.
