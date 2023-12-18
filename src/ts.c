@@ -359,21 +359,11 @@ static int ts_token_match ( const Mode *sw, rofi_int_matcher **tokens, unsigned 
 
 extern void rofi_view_reload ( void );
 
-static void get_translation_callback ( GObject *source_object, GAsyncResult *res, gpointer user_data )
+static char *read_pipes ( GSubprocess *process )
 {
-    GSubprocess *process = G_SUBPROCESS ( source_object );
     GError *error = NULL;
     GInputStream *stdout_stream = g_subprocess_get_stdout_pipe ( process );
     GInputStream *stderr_stream = g_subprocess_get_stderr_pipe ( process );
-
-    char **translation = (char **) user_data;
-
-    g_subprocess_wait_check_finish ( process, res, &error );
-
-    if ( error != NULL ) {
-        g_error ( "Process errored with: %s", error->message );
-        g_error_free ( error );
-    }
 
     const unsigned int bufsize = 4096;
     char *stdout_buf = g_malloc0 ( bufsize );
@@ -403,22 +393,15 @@ static void get_translation_callback ( GObject *source_object, GAsyncResult *res
         g_error_free ( error );
     }
 
-    if ( *translation != NULL ) {
-        g_free ( *translation );
-    }
-    *translation = g_strconcat ( stderr_buf, "\n", stdout_buf, NULL );
-
-    g_debug ( "Stdout: %s", stdout_buf );
-    g_debug ( "Stderr: %s", stderr_buf );
-    g_debug ( "Translation: %s", *translation );
+    char *result = g_strconcat ( stderr_buf, "\n", stdout_buf, NULL );
 
     g_free ( stdout_buf );
     g_free ( stderr_buf );
 
-    rofi_view_reload ();
+    return result;
 }
 
-static void get_translation ( const char *input, char **translation )
+static char *get_translation ( const char *input )
 {
     GError *error = NULL;
     const char *executable = "trans";
@@ -436,7 +419,17 @@ static void get_translation ( const char *input, char **translation )
         g_error_free ( error );
     }
 
-    g_subprocess_wait_check_async ( process, NULL, get_translation_callback, translation );
+    g_subprocess_wait_check ( process, NULL, &error );
+
+    if ( error != NULL ) {
+        g_error ( "Process errored with: %s", error->message );
+        g_error_free ( error );
+    }
+
+    char *result = read_pipes ( process );
+    g_object_unref ( process );
+
+    return result;
 }
 
 static int timeout_count = 0;
@@ -444,8 +437,13 @@ static int timeout_count = 0;
 static gboolean timeout_callback ( gpointer data ) {
     if ( g_atomic_int_dec_and_test(&timeout_count) ) {
         TSModePrivateData *pd = (TSModePrivateData *) data;
-        get_translation ( pd->prev_input, &pd->translation );
+
+        char *translation = get_translation ( pd->prev_input );
+        g_free ( pd->translation );
+        pd->translation = translation;
+
         append_history ( pd->prev_input, pd );
+        rofi_view_reload ();
     }
     return G_SOURCE_REMOVE;
 }
