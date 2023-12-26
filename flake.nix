@@ -19,10 +19,6 @@
             cairo
             bear
           ];
-
-          shellHook = ''
-            exec fish
-          '';
         };
       });
 }
