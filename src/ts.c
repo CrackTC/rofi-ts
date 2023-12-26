@@ -401,14 +401,34 @@ static char *read_pipes ( GSubprocess *process )
     return result;
 }
 
-static char *get_translation ( const char *input )
+static void get_translation_cb ( GObject *source, GAsyncResult *res, gpointer data ) {
+    GError *error = NULL;
+    GSubprocess *process = G_SUBPROCESS ( source );
+    g_subprocess_wait_check_finish ( process, res, &error );
+    if ( error != NULL ) {
+        g_error ( "Process errored with: %s", error->message );
+        g_error_free ( error );
+    }
+
+    char *result = read_pipes ( process );
+    g_object_unref ( process );
+
+    TSModePrivateData *pd = (TSModePrivateData *) data;
+    g_free ( pd->translation );
+    pd->translation = result;
+
+    append_history ( pd->prev_input, pd );
+    rofi_view_reload ();
+}
+
+static void get_translation ( TSModePrivateData *pd )
 {
     GError *error = NULL;
-    const char *executable = "trans";
+    char *executable = "trans";
 
     GPtrArray *argv = g_ptr_array_new ();
-    g_ptr_array_add ( argv, (char*) executable );
-    g_ptr_array_add ( argv, (char*) input );
+    g_ptr_array_add ( argv, executable );
+    g_ptr_array_add ( argv, pd->prev_input );
     g_ptr_array_add ( argv, NULL );
 
     GSubprocess *process = g_subprocess_newv ( (const gchar**)(argv->pdata), G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE, &error );
@@ -419,17 +439,7 @@ static char *get_translation ( const char *input )
         g_error_free ( error );
     }
 
-    g_subprocess_wait_check ( process, NULL, &error );
-
-    if ( error != NULL ) {
-        g_error ( "Process errored with: %s", error->message );
-        g_error_free ( error );
-    }
-
-    char *result = read_pipes ( process );
-    g_object_unref ( process );
-
-    return result;
+    g_subprocess_wait_check_async ( process, NULL, get_translation_cb, pd );
 }
 
 static int timeout_count = 0;
@@ -437,13 +447,7 @@ static int timeout_count = 0;
 static gboolean timeout_callback ( gpointer data ) {
     if ( g_atomic_int_dec_and_test(&timeout_count) ) {
         TSModePrivateData *pd = (TSModePrivateData *) data;
-
-        char *translation = get_translation ( pd->prev_input );
-        g_free ( pd->translation );
-        pd->translation = translation;
-
-        append_history ( pd->prev_input, pd );
-        rofi_view_reload ();
+        get_translation ( pd );
     }
     return G_SOURCE_REMOVE;
 }
