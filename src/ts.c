@@ -428,11 +428,23 @@ static void get_translation ( TSModePrivateData *pd )
 
     GPtrArray *argv = g_ptr_array_new ();
     g_ptr_array_add ( argv, executable );
-    g_ptr_array_add ( argv, pd->prev_input );
+
+    char **words = g_strsplit ( pd->prev_input, " ", 2 );
+    // if first word contains ":", it certainly means we want to translate from one language to another:
+    // add two args, one for lang param, one for the rest of the input
+    if (g_strv_length(words) > 1 && g_strrstr(words[0], ":") != NULL) {
+        g_ptr_array_add ( argv, words[0] );
+        g_ptr_array_add ( argv, words[1] );
+    // otherwise just add the input as param
+    } else {
+        g_ptr_array_add ( argv, pd->prev_input );
+    }
+
     g_ptr_array_add ( argv, NULL );
 
     GSubprocess *process = g_subprocess_newv ( (const gchar**)(argv->pdata), G_SUBPROCESS_FLAGS_STDOUT_PIPE | G_SUBPROCESS_FLAGS_STDERR_PIPE, &error );
     g_ptr_array_free ( argv, TRUE );
+    g_strfreev(words);
 
     if ( error != NULL ) {
         g_error ( "Spawning child failed: %s", error->message );
